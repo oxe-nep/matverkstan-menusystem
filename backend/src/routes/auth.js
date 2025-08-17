@@ -12,12 +12,21 @@ router.post('/login', async (req, res) => {
         const adminUsername = process.env.ADMIN_USERNAME || 'admin';
         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
+        console.log('Login attempt:', { username, password: '[HIDDEN]' });
+        console.log('Expected credentials:', { adminUsername, adminPassword: '[HIDDEN]' });
+        console.log('Environment check:', { 
+            hasAdminUsername: !!process.env.ADMIN_USERNAME,
+            hasAdminPassword: !!process.env.ADMIN_PASSWORD 
+        });
+
         if (username !== adminUsername) {
+            console.log('Username mismatch:', username, 'vs', adminUsername);
             return res.status(401).json({ message: 'Ogiltiga inloggningsuppgifter' });
         }
 
         // I produktion skulle lösenordet vara hashat, men för enkelhet använder vi plaintext här
         if (password !== adminPassword) {
+            console.log('Password mismatch');
             return res.status(401).json({ message: 'Ogiltiga inloggningsuppgifter' });
         }
 
