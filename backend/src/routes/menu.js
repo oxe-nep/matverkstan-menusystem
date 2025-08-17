@@ -222,10 +222,12 @@ router.get('/events', (req, res) => {
     // Sätt SSE headers
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Cache-Control'
+        'Access-Control-Allow-Headers': 'Cache-Control',
+        'X-Accel-Buffering': 'no',
+        'Transfer-Encoding': 'chunked'
     });
 
     // Lägg till klienten i listan
@@ -251,14 +253,27 @@ router.get('/events', (req, res) => {
         console.error(`Error sending initial data to client ${clientId}:`, error);
     }
 
+    // Skicka ping var 30:e sekund för att hålla anslutningen vid liv
+    const pingInterval = setInterval(() => {
+        try {
+            res.write(`: ping\n\n`);
+        } catch (error) {
+            console.error(`Error sending ping to client ${clientId}:`, error);
+            clearInterval(pingInterval);
+            sseClients = sseClients.filter(c => c.id !== clientId);
+        }
+    }, 30000);
+
     // Cleanup när klienten disconnectar
     req.on('close', () => {
+        clearInterval(pingInterval);
         sseClients = sseClients.filter(c => c.id !== clientId);
         console.log(`SSE Client ${clientId} disconnected. Active clients: ${sseClients.length}`);
     });
 
     req.on('error', (error) => {
         console.error(`SSE Client ${clientId} error:`, error);
+        clearInterval(pingInterval);
         sseClients = sseClients.filter(c => c.id !== clientId);
     });
 
