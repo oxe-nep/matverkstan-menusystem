@@ -270,7 +270,8 @@ function broadcastMenuUpdate() {
     const updateData = {
         type: 'menu-update',
         selectedDay: selectedMenuDay || getTodaysDay(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        updateId: Date.now() // Unik ID för varje uppdatering
     };
 
     sseClients.forEach(client => {
@@ -288,7 +289,8 @@ function broadcastMenuUpdate() {
 function broadcastWeeklyMenuUpdate() {
     const updateData = {
         type: 'weekly-menu-update',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        updateId: Date.now() // Unik ID för varje uppdatering
     };
 
     sseClients.forEach(client => {

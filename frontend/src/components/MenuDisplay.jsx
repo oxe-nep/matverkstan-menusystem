@@ -56,8 +56,11 @@ const MenuDisplay = () => {
           
           if (data.type === 'menu-update' || data.type === 'weekly-menu-update') {
             console.log('Menu update detected, fetching new menu data...')
-            // Hämta den uppdaterade menyn direkt
-            fetchTodaysMenu()
+            // Tvinga fram en fullständig uppdatering av komponenten
+            setMenuData(null) // Rensa gammal data först
+            setTimeout(() => {
+              fetchTodaysMenu(true) // Använd force-refresh för att undvika cache
+            }, 100) // Kort delay för att säkerställa att state uppdateras
           }
         } catch (err) {
           console.error('Error parsing SSE message:', err, 'Raw event:', event)
@@ -85,10 +88,14 @@ const MenuDisplay = () => {
     }
   }
 
-  const fetchTodaysMenu = async () => {
+  const fetchTodaysMenu = async (forceRefresh = false) => {
     try {
       setLoading(true)
-      const response = await axios.get('/api/menu/today')
+      
+      // Lägg till en cache-busting parameter om forceRefresh är true
+      const url = forceRefresh ? `/api/menu/today?t=${Date.now()}` : '/api/menu/today'
+      const response = await axios.get(url)
+      
       setMenuData(response.data)
       setError(null)
       
@@ -172,10 +179,11 @@ const MenuDisplay = () => {
             <div className="daily-menu-container">
               {menuData?.hasMenu ? (
                 <img 
-                  src={menuData.menuUrl} 
+                  src={`${menuData.menuUrl}?t=${Date.now()}`} 
                   alt="Dagens meny"
                   className="daily-menu-image"
                   onError={() => setError('Kunde inte ladda dagens meny')}
+                  key={`daily-${Date.now()}`}
                 />
               ) : (
                 <div className="placeholder-menu">
@@ -192,10 +200,11 @@ const MenuDisplay = () => {
             <div className="weekly-menu-container">
               {menuData?.hasWeeklyMenu ? (
                 <img 
-                  src={menuData.weeklyMenuUrl} 
+                  src={`${menuData.weeklyMenuUrl}?t=${Date.now()}`} 
                   alt="Veckans meny"
                   className="weekly-menu-image"
                   onError={() => setError('Kunde inte ladda veckans meny')}
+                  key={`weekly-${Date.now()}`}
                 />
               ) : (
                 <div className="placeholder-menu">
@@ -212,6 +221,13 @@ const MenuDisplay = () => {
 
       <footer className="menu-footer">
         <p>Automatisk uppdatering - Senast uppdaterad: {formatTime(currentTime)}</p>
+        <button 
+          onClick={() => fetchTodaysMenu(true)} 
+          className="refresh-button"
+          title="Uppdatera meny manuellt"
+        >
+          🔄 Uppdatera
+        </button>
       </footer>
     </div>
   )
