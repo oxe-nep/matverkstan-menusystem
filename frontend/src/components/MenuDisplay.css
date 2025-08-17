@@ -184,8 +184,14 @@
   }
 }
 
-/* Refresh button styling */
-.refresh-button {
+/* Footer buttons styling */
+.footer-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.refresh-button,
+.debug-button {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -196,11 +202,18 @@
   transition: all 0.3s ease;
 }
 
-.refresh-button:hover {
+.refresh-button:hover,
+.debug-button:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.refresh-button:active {
+.refresh-button:active,
+.debug-button:active {
   transform: scale(0.95);
+}
+
+.debug-button {
+  background: rgba(255, 193, 7, 0.3);
+  border-color: rgba(255, 193, 7, 0.5);
 }

@@ -57,13 +57,23 @@ const MenuDisplay = () => {
           
           if (data.type === 'menu-update' || data.type === 'weekly-menu-update') {
             console.log('Menu update detected, fetching new menu data...')
+            console.log('Current menuData before update:', menuData)
+            
             // Uppdatera timestamp för att tvinga fram nya bildladdningar
-            setMenuTimestamp(Date.now())
+            const newTimestamp = Date.now()
+            console.log('Setting new menuTimestamp:', newTimestamp)
+            setMenuTimestamp(newTimestamp)
+            
             // Tvinga fram en fullständig uppdatering av komponenten
+            console.log('Clearing menuData to force refresh')
             setMenuData(null) // Rensa gammal data först
+            
             setTimeout(() => {
+              console.log('Fetching new menu data with force-refresh...')
               fetchTodaysMenu(true) // Använd force-refresh för att undvika cache
             }, 100) // Kort delay för att säkerställa att state uppdateras
+          } else {
+            console.log('SSE message type not handled:', data.type)
           }
         } catch (err) {
           console.error('Error parsing SSE message:', err, 'Raw event:', event)
@@ -93,19 +103,27 @@ const MenuDisplay = () => {
 
   const fetchTodaysMenu = async (forceRefresh = false) => {
     try {
+      console.log(`fetchTodaysMenu called with forceRefresh: ${forceRefresh}`)
       setLoading(true)
       
       // Lägg till en cache-busting parameter om forceRefresh är true
       const url = forceRefresh ? `/api/menu/today?t=${Date.now()}` : '/api/menu/today'
+      console.log('Fetching from URL:', url)
+      
       const response = await axios.get(url)
+      console.log('API response:', response.data)
       
       setMenuData(response.data)
       setError(null)
       
       // Uppdatera timestamp om det är en force-refresh
       if (forceRefresh) {
-        setMenuTimestamp(Date.now())
+        const newTimestamp = Date.now()
+        console.log('Force refresh - setting new timestamp:', newTimestamp)
+        setMenuTimestamp(newTimestamp)
       }
+      
+      console.log('Menu data updated, new menuData:', response.data)
       
       // Uppdatera sidans titel
       if (response.data.day) {
@@ -229,13 +247,27 @@ const MenuDisplay = () => {
 
       <footer className="menu-footer">
         <p>Automatisk uppdatering - Senast uppdaterad: {formatTime(currentTime)}</p>
-        <button 
-          onClick={() => fetchTodaysMenu(true)} 
-          className="refresh-button"
-          title="Uppdatera meny manuellt"
-        >
-          🔄 Uppdatera
-        </button>
+        <div className="footer-buttons">
+          <button 
+            onClick={() => fetchTodaysMenu(true)} 
+            className="refresh-button"
+            title="Uppdatera meny manuellt"
+          >
+            🔄 Uppdatera
+          </button>
+          <button 
+            onClick={() => {
+              console.log('Current state:')
+              console.log('- menuData:', menuData)
+              console.log('- menuTimestamp:', menuTimestamp)
+              console.log('- eventSource readyState:', eventSource?.readyState)
+            }} 
+            className="debug-button"
+            title="Debug information"
+          >
+            🐛 Debug
+          </button>
+        </div>
       </footer>
     </div>
   )

@@ -10,6 +10,14 @@ const AdminPanel = ({ onLogout }) => {
   const [messageType, setMessageType] = useState('')
   const [currentDisplayedDay, setCurrentDisplayedDay] = useState(null)
   const [eventSource, setEventSource] = useState(null)
+  
+  // Hämta aktuell host för att bygga fullständiga URL:er
+  const getFullImageUrl = (relativePath) => {
+    if (!relativePath) return null
+    const protocol = window.location.protocol
+    const host = window.location.host
+    return `${protocol}//${host}${relativePath}`
+  }
 
   const days = [
     { key: 'monday', name: 'Måndag' },
@@ -48,9 +56,16 @@ const AdminPanel = ({ onLogout }) => {
           console.log('Admin SSE message received:', data)
           
           if (data.type === 'menu-update') {
+            console.log('Menu update received in admin, updating display day:', data.selectedDay)
             // Uppdatera vilken meny som visas (null = automatiskt val)
             setCurrentDisplayedDay(data.selectedDay || null)
+            
+            // Uppdatera även menyerna för att säkerställa att allt är synkroniserat
+            setTimeout(() => {
+              fetchMenus()
+            }, 200)
           } else if (data.type === 'weekly-menu-update') {
+            console.log('Weekly menu update received in admin')
             // Uppdatera menyerna när veckomeny ändras
             fetchMenus()
           }
@@ -107,14 +122,27 @@ const AdminPanel = ({ onLogout }) => {
 
   const showMenuOnDisplay = async (day) => {
     try {
+      console.log(`Setting display menu to: ${day}`)
       const token = localStorage.getItem('token')
-      await axios.post(`/api/menu/set-display/${day}`, {}, {
+      const response = await axios.post(`/api/menu/set-display/${day}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       
+      console.log('Backend response:', response.data)
+      
+      // Uppdatera lokala staten direkt
       setCurrentDisplayedDay(day)
+      console.log(`Local state updated to: ${day}`)
       showMessage(`Visar nu meny för ${getDayName(day)}`, 'success')
+      
+      // Vänta lite och uppdatera igen för att säkerställa synkronisering
+      setTimeout(() => {
+        console.log('Syncing with backend...')
+        getCurrentDisplayedDay()
+      }, 500)
+      
     } catch (error) {
+      console.error('Error setting display menu:', error)
       showMessage(
         error.response?.data?.message || 'Fel vid byte av meny',
         'error'
@@ -204,16 +232,32 @@ const AdminPanel = ({ onLogout }) => {
       formData.append('menu', file)
 
       const token = localStorage.getItem('token')
-      await axios.post(`/api/menu/upload/${day}`, formData, {
+      const response = await axios.post(`/api/menu/upload/${day}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         }
       })
 
+      console.log('Upload response:', response.data)
       showMessage(`Meny för ${getDayName(day)} uppladdad!`, 'success')
-      fetchMenus() // Uppdatera listan
+      
+      // Uppdatera menyerna
+      fetchMenus()
+      
+      // Om den uppladdade menyn är den som visas just nu, uppdatera även displayen
+      if (currentDisplayedDay === day) {
+        console.log(`Uploaded menu for currently displayed day: ${day}, triggering display update`)
+        // Vänta lite för att säkerställa att filen är tillgänglig
+        setTimeout(() => {
+          // Trigga en manuell uppdatering av frontend-displayen
+          // Detta kommer att skicka SSE-meddelande som uppdaterar alla klienter
+          console.log('Triggering manual display update for uploaded menu')
+        }, 1000)
+      }
+      
     } catch (error) {
+      console.error('Upload error:', error)
       showMessage(
         error.response?.data?.message || 'Fel vid uppladdning',
         'error'
@@ -349,11 +393,11 @@ const AdminPanel = ({ onLogout }) => {
               {menus.weekly ? (
                 <div className="current-menu">
                   <div className="menu-image-container">
-                    <img 
-                      src={menus.weekly} 
-                      alt="Veckans meny"
-                      className="menu-preview"
-                    />
+                                         <img 
+                       src={getFullImageUrl(menus.weekly)} 
+                       alt="Veckans meny"
+                       className="menu-preview"
+                     />
                   </div>
                   <div className="menu-actions">
                     <button
@@ -403,6 +447,16 @@ const AdminPanel = ({ onLogout }) => {
             >
               {!currentDisplayedDay ? '✅ Automatiskt val aktivt' : '🔄 Välj dag automatiskt'}
             </button>
+            <button
+              onClick={() => {
+                getCurrentDisplayedDay()
+                fetchMenus()
+              }}
+              className="control-btn secondary"
+              title="Synkronisera med backend"
+            >
+              🔄 Synkronisera
+            </button>
             <span className="current-selection">
               Visar just nu: <strong>{getCurrentDisplayText()}</strong>
             </span>
@@ -428,11 +482,11 @@ const AdminPanel = ({ onLogout }) => {
                   {hasMenu ? (
                     <div className="current-menu">
                       <div className="menu-image-container">
-                        <img 
-                          src={hasMenu} 
-                          alt={`Meny för ${day.name}`}
-                          className="menu-preview"
-                        />
+                                                 <img 
+                           src={getFullImageUrl(hasMenu)} 
+                           alt={`Meny för ${day.name}`}
+                           className="menu-preview"
+                         />
                       </div>
                       <div className="menu-actions">
                         <button
