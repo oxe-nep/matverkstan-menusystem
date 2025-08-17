@@ -9,7 +9,7 @@ body {
   line-height: 1.6;
   color: #1a1a1a;
   background-color: #ffffff;
-  overflow: hidden; /* Förhindra scrollbars */
+  /* Låt admin-sidan scrolla, men begränsa menysidan */
 }
 
 #root {

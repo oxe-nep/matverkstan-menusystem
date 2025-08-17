@@ -5,6 +5,7 @@
   justify-content: center;
   background: #f8f9fa;
   padding: 2rem;
+  overflow-y: auto; /* Tillåt scrollning om innehållet är för stort */
 }
 
 .login-card {

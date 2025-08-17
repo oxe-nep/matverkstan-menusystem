@@ -1,6 +1,8 @@
 .admin-panel {
   min-height: 100vh;
   background: #ffffff;
+  overflow-y: auto; /* Tillåt vertikal scrollning */
+  overflow-x: hidden; /* Förhindra horisontell scrollning */
 }
 
 .admin-panel.loading {
