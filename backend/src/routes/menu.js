@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cron = require('node-cron');
 const { authenticateToken } = require('../middleware/auth');
 
 // Enkel in-memory storage för vald meny (i produktion skulle detta vara en databas)
@@ -10,6 +11,9 @@ let selectedMenuDay = null;
 
 // Array för att hålla koll på alla aktiva SSE-anslutningar
 let sseClients = [];
+
+// Variabel för att hålla koll på senaste kontrollerade dagen
+let lastCheckedDay = null;
 
 const router = express.Router();
 
@@ -215,6 +219,35 @@ function getTodaysDay() {
     return dayNames[today.getDay()];
 }
 
+// Funktion för att kontrollera om dagen har ändrats och broadcasta uppdatering
+function checkDayChange() {
+    const currentDay = getTodaysDay();
+    
+    // Om dagen har ändrats sedan senaste kontrollen
+    if (lastCheckedDay !== currentDay) {
+        console.log(`Dag ändrades från ${lastCheckedDay} till ${currentDay}`);
+        
+        // Uppdatera senaste kontrollerade dagen
+        lastCheckedDay = currentDay;
+        
+        // Om det är helg, sätt selectedMenuDay till null (automatiskt val)
+        if (currentDay === 'saturday' || currentDay === 'sunday') {
+            if (selectedMenuDay !== null) {
+                console.log('Helg upptäckt, återställer till automatiskt val');
+                selectedMenuDay = null;
+            }
+        }
+        
+        // Broadcasta uppdatering till alla klienter
+        broadcastMenuUpdate();
+        
+        console.log(`Automatisk uppdatering skickad vid midnatt för dag: ${currentDay}`);
+    }
+}
+
+// Initiera senaste kontrollerade dagen
+lastCheckedDay = getTodaysDay();
+
 // Server-Sent Events endpoint för realtidsuppdateringar
 router.get('/events', (req, res) => {
     console.log('SSE endpoint hit - new client connecting');
@@ -280,13 +313,21 @@ router.get('/events', (req, res) => {
     console.log(`SSE Client ${clientId} connected successfully. Active clients: ${sseClients.length}`);
 });
 
+// Schemalägg kontroll av dagens ändring varje minut (för att fånga midnatt)
+cron.schedule('* * * * *', () => {
+    checkDayChange();
+});
+
+console.log('Midnattshantering aktiverad - kontrollerar dagens ändring varje minut');
+
 // Funktion för att skicka uppdateringar till alla anslutna klienter
 function broadcastMenuUpdate() {
     const updateData = {
         type: 'menu-update',
         selectedDay: selectedMenuDay || getTodaysDay(),
         timestamp: new Date().toISOString(),
-        updateId: Date.now() // Unik ID för varje uppdatering
+        updateId: Date.now(), // Unik ID för varje uppdatering
+        isAutomaticUpdate: lastCheckedDay !== null && selectedMenuDay === null // Indikera om det är automatisk uppdatering
     };
 
     sseClients.forEach(client => {
