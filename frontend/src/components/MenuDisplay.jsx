@@ -8,6 +8,7 @@ const MenuDisplay = () => {
   const [error, setError] = useState(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [eventSource, setEventSource] = useState(null)
+  const [menuTimestamp, setMenuTimestamp] = useState(Date.now()) // Stabil timestamp för menyn
 
   useEffect(() => {
     fetchTodaysMenu()
@@ -56,6 +57,8 @@ const MenuDisplay = () => {
           
           if (data.type === 'menu-update' || data.type === 'weekly-menu-update') {
             console.log('Menu update detected, fetching new menu data...')
+            // Uppdatera timestamp för att tvinga fram nya bildladdningar
+            setMenuTimestamp(Date.now())
             // Tvinga fram en fullständig uppdatering av komponenten
             setMenuData(null) // Rensa gammal data först
             setTimeout(() => {
@@ -98,6 +101,11 @@ const MenuDisplay = () => {
       
       setMenuData(response.data)
       setError(null)
+      
+      // Uppdatera timestamp om det är en force-refresh
+      if (forceRefresh) {
+        setMenuTimestamp(Date.now())
+      }
       
       // Uppdatera sidans titel
       if (response.data.day) {
@@ -179,11 +187,11 @@ const MenuDisplay = () => {
             <div className="daily-menu-container">
               {menuData?.hasMenu ? (
                 <img 
-                  src={`${menuData.menuUrl}?t=${Date.now()}`} 
+                  src={`${menuData.menuUrl}?t=${menuTimestamp}`} 
                   alt="Dagens meny"
                   className="daily-menu-image"
                   onError={() => setError('Kunde inte ladda dagens meny')}
-                  key={`daily-${Date.now()}`}
+                  key={`daily-${menuTimestamp}`}
                 />
               ) : (
                 <div className="placeholder-menu">
@@ -200,11 +208,11 @@ const MenuDisplay = () => {
             <div className="weekly-menu-container">
               {menuData?.hasWeeklyMenu ? (
                 <img 
-                  src={`${menuData.weeklyMenuUrl}?t=${Date.now()}`} 
+                  src={`${menuData.weeklyMenuUrl}?t=${menuTimestamp}`} 
                   alt="Veckans meny"
                   className="weekly-menu-image"
-                  onError={() => setError('Kunde inte ladda veckans meny')}
-                  key={`weekly-${Date.now()}`}
+                  onError={() => setMenuTimestamp(Date.now())}
+                  key={`weekly-${menuTimestamp}`}
                 />
               ) : (
                 <div className="placeholder-menu">
