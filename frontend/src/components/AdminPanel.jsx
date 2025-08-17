@@ -447,16 +447,7 @@ const AdminPanel = ({ onLogout }) => {
             >
               {!currentDisplayedDay ? '✅ Automatiskt val aktivt' : '🔄 Välj dag automatiskt'}
             </button>
-            <button
-              onClick={() => {
-                getCurrentDisplayedDay()
-                fetchMenus()
-              }}
-              className="control-btn secondary"
-              title="Synkronisera med backend"
-            >
-              🔄 Synkronisera
-            </button>
+            
             <span className="current-selection">
               Visar just nu: <strong>{getCurrentDisplayText()}</strong>
             </span>
