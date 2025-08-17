@@ -48,8 +48,8 @@ const AdminPanel = ({ onLogout }) => {
           console.log('Admin SSE message received:', data)
           
           if (data.type === 'menu-update') {
-            // Uppdatera vilken meny som visas
-            setCurrentDisplayedDay(data.selectedDay)
+            // Uppdatera vilken meny som visas (null = automatiskt val)
+            setCurrentDisplayedDay(data.selectedDay || null)
           } else if (data.type === 'weekly-menu-update') {
             // Uppdatera menyerna när veckomeny ändras
             fetchMenus()
@@ -96,7 +96,8 @@ const AdminPanel = ({ onLogout }) => {
       const response = await axios.get('/api/menu/current-display')
       console.log('Current display response:', response.data)
       // Om selectedDay är null betyder det automatiskt val
-      setCurrentDisplayedDay(response.data.selectedDay)
+      // Viktigt: sätt explicit till null för automatiskt val
+      setCurrentDisplayedDay(response.data.selectedDay || null)
     } catch (error) {
       console.error('Error fetching current day:', error)
       // Fallback till automatiskt val (null) om det blir fel

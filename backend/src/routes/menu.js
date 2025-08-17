@@ -5,6 +5,7 @@ const fs = require('fs');
 const { authenticateToken } = require('../middleware/auth');
 
 // Enkel in-memory storage för vald meny (i produktion skulle detta vara en databas)
+// null = automatiskt val (dagens dag), string = specifik vald dag
 let selectedMenuDay = null;
 
 // Array för att hålla koll på alla aktiva SSE-anslutningar
