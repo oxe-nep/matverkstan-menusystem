@@ -1,0 +1,185 @@
+.menu-display {
+  width: 1080px;
+  height: 1920px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  color: #333;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.menu-display.loading {
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-content h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Header är dold i fullskärmsläge - endast för debugging */
+.menu-header {
+  display: none;
+}
+
+.menu-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 0;
+  margin: 0;
+}
+
+.daily-menu-container {
+  width: 1080px;
+  height: 960px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+}
+
+.weekly-menu-container {
+  width: 1080px;
+  height: 960px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+}
+
+.daily-menu-image {
+  width: 1080px;
+  height: 960px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.weekly-menu-image {
+  width: 1080px;
+  height: 960px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.placeholder-menu {
+  width: 1080px;
+  height: 960px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f8f9fa;
+  color: #666;
+}
+
+.placeholder-menu h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.placeholder-menu p {
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.no-menu-message,
+.error-message {
+  text-align: center;
+  background: #f8f9fa;
+  padding: 4rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  max-width: 600px;
+}
+
+.no-menu-message h2,
+.error-message h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: #495057;
+  font-weight: 600;
+}
+
+.no-menu-message p,
+.error-message p {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #6c757d;
+}
+
+.day-info {
+  font-size: 1rem !important;
+  color: #adb5bd !important;
+  font-style: italic;
+}
+
+/* Footer är dold i fullskärmsläge */
+.menu-footer {
+  display: none;
+}
+
+/* Responsiv design för olika skärmstorlekar */
+@media (max-width: 768px) {
+  .restaurant-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .restaurant-info h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .date-time {
+    text-align: center;
+  }
+  
+  .menu-image-container h2 {
+    font-size: 1.8rem;
+  }
+  
+  .no-menu-message h2,
+  .error-message h2 {
+    font-size: 2rem;
+  }
+  
+  .no-menu-message p,
+  .error-message p {
+    font-size: 1.2rem;
+  }
+}
+
+/* Optimering för 1080x1920 (porträtt) */
+@media (max-width: 1080px) and (orientation: portrait) {
+  .menu-header {
+    padding: 1.5rem;
+  }
+  
+  .restaurant-info h1 {
+    font-size: 2.5rem;
+  }
+  
+  .menu-image {
+    max-height: 75vh;
+  }
+}
